@@ -185,13 +185,13 @@ function returnTimeInFormat(time) {
 
     const tableWrap = document.getElementById('tableWrap');
     var startTime = document.getElementById('t').value;
-    var endTime = document.getElementById('e').value;
+    // var endTime = document.getElementById('e').value;
     const textareaTxt = textarea.value;
     var textLines = textareaTxt.split(/\r?\n/);
     textLines = textLines.filter((n) => n.length > 1);
     console.log(textLines);
     var timeMinutes = convertMilitaryTimeToMinutes(startTime);
-    const minutesDiff = getMinutesDifferenceBetweenTwoMilitaryTimes(startTime, endTime);
+    // const minutesDiff = getMinutesDifferenceBetweenTwoMilitaryTimes(startTime, endTime);
     var tableHtml = '';
     tableHtml += '<table><thead><tr>';
         tableHtml += '<th>Activity</th>';
