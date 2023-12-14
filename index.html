@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Agenda</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif'
+        }
+        * {
+            box-sizing: border-box;
+        }
+        * + * {
+            margin-top: 1em;
+        }
+        .row * + * {
+            margin-top: 0;
+            margin-left: 1em;
+        }
+        table {
+            width: 100%;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+        tr > * {
+            border-top: 1px solid #000;
+            border-left: 1px solid #000;
+            padding: 1em;
+        }
+        
+    </style>
+    
+  </head>
+  <body style="margin: 1em;">
+    <form id="f" action="">
+        <!-- For every input, remember to add a name and id attribute with the same value -->
+    <div class="row">
+        <span>Show Form?</span> <label><input name="s" value="y" type="radio" checked>Yes</label>
+        <label><input name="s" value="n" type="radio">No</label>
+    </div>
+    
+    <div id="formBonus" >
+        <div class="row">
+            <span>Time format</span> <label><input name="f" value="m" type="radio" checked>Military</label>
+            <label><input name="f" value="s" type="radio">Standard</label>
+        </div>
+    <div><label>Number of textarea lines <input id="l" name="l" type="number" value="5"></label></div>
+    <div><label>Start time <input id="t" name="t" type="time"></label></div>
+    <div class="row"><label>End time (optional) <input name="e" id="e" type="time"></label><span>Use unitless numbers (or no colons or numbers) to create ratios of time between items</span></div>
+    <div>
+        <label style="display: block;">Add agenda items in the format "activity:duration" where duration can be something like 15m (15 minutes) or 2h (2 hours).
+            <textarea id="a" name="a" style="display:block; border: 1px solid #000; width: 100%; "  ></textarea>
+        </label>
+    </div>
+    </div>
+    
+    <div style="margin-top: 20px; "><button style="width: 100%; background: #000; color: #fff; appearance: none; padding: 5px; border: 0;" type="submit">
+        Submit
+    </button></div>
+</form>
+<div id="tableWrap"></div>
+
+
+<script type="text/javascript">
+
+
+
+// populate fields (can be used in a lot of apps!)
+const urlParams = new URLSearchParams(window.location.search);
+// https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+urlParams.forEach((value, key) => {
+    var input = document.querySelectorAll('[name="'+key+'"]');
+    var inputType = input[0].type;
+    if(inputType == 'checkbox') {
+        if(value == 'on') {
+            input[0].checked = true;
+        }
+    }
+    else if(inputType == 'radio') {
+        document.querySelectorAll('[name="'+key+'"][value="'+value+'"]')[0].checked = true;
+    }
+    else {
+        document.querySelectorAll('[name="'+key+'"]')[0].value = value;
+    }
+});
+
+// # app-specific stuff
+
+// ## input to update number of rows in checkbox
+    const textarea = document.getElementById('a');
+    const linesInput = document.getElementById('l');
+    textarea.rows = linesInput.value;
+
+// ## input to toggle visibility of content
+    const formBonus = document.getElementById('formBonus');
+    const showFormInput = document.querySelectorAll('[name="s"][value="n"]')[0];
+    if(showFormInput.checked) {
+        formBonus.style['display'] = 'none';
+    }
+
+// time format
+const timeFormat = document.querySelector('[name="f"]:checked').value;
+
+// turn textarea content into array 
+function militaryTimeToStandard(time) {
+    // https://stackoverflow.com/questions/29206453/best-way-to-convert-military-time-to-standard-time-in-javascript
+    time = time.split(':'); // convert to array
+
+// fetch
+var hours = Number(time[0]);
+var minutes = Number(time[1]);
+var seconds = Number(time[2]);
+
+// calculate
+var timeValue;
+
+if (hours > 0 && hours <= 12) {
+  timeValue= "" + hours;
+} else if (hours > 12) {
+  timeValue= "" + (hours - 12);
+} else if (hours == 0) {
+  timeValue= "12";
+}
+ 
+timeValue += (minutes < 10) ? ":0" + minutes : ":" + minutes;  // get minutes
+timeValue += (hours >= 12) ? " P.M." : " A.M.";  // get AM/PM
+
+// show
+return timeValue;
+}
+function convertMinutesToMilitaryTime(minutes) {
+    var hours = Math.floor(minutes/60);
+    var newMinutes = minutes - hours*60;
+    var preHours = '';
+    var preMinutes = '';
+    if(hours < 10) {
+        preHours = '0';
+    }
+    if(newMinutes < 10) {
+        preMinutes = '0';
+    }
+    return preHours + hours + ':' + preMinutes + newMinutes;
+}
+function convertMilitaryTimeToMinutes(militaryTime) {
+    var timeArray = militaryTime.split(':');
+    return timeArray[0]*60 + Number(timeArray[1]);
+}
+function getMinutesDifferenceBetweenTwoMilitaryTimes(time1, time2) {
+    var minutes1 = convertMilitaryTimeToMinutes(time1);
+    var minutes2 = convertMilitaryTimeToMinutes(time2);
+    var minutesDiff = minutes1 - minutes2;
+    if(minutesDiff < 0) {
+        minutesDiff += 24*60;
+    }
+    return minutesDiff;
+}
+function timeTextToMinutes(timeText) {
+    var timeNumber = Number(timeText); 
+    var totalMinutes = 0;
+    if(isNaN(timeNumber)) {
+        timeNumber = Number(timeText.slice(0, -1));
+        if (timeText.indexOf('m') > -1) {
+            totalMinutes += timeNumber;
+        }
+        if (timeText.indexOf('h') > -1) {
+            totalMinutes += timeNumber*60;
+        }
+    }
+    else {
+        console.log(timeNumber);
+    }
+    
+    return totalMinutes;
+}
+function returnTimeInFormat(time) {
+    if(timeFormat == 's') {
+        return militaryTimeToStandard(time);
+    }
+    else {
+        return time;
+    }
+}
+
+    const tableWrap = document.getElementById('tableWrap');
+    var startTime = document.getElementById('t').value;
+    var endTime = document.getElementById('e').value;
+    const textareaTxt = textarea.value;
+    var textLines = textareaTxt.split(/\r?\n/);
+    textLines = textLines.filter((n) => n.length > 1);
+    console.log(textLines);
+    var timeMinutes = convertMilitaryTimeToMinutes(startTime);
+    const minutesDiff = getMinutesDifferenceBetweenTwoMilitaryTimes(startTime, endTime);
+    var tableHtml = '';
+    tableHtml += '<table><thead><tr>';
+        tableHtml += '<th>Activity</th>';
+        tableHtml += '<th>Start Time</th>';
+        tableHtml += '<th>Duration</th>';
+        tableHtml += '</tr></thead><tbody>';
+    for (let i = 0; i < textLines.length; i++) {
+        tableHtml += '<tr>';
+        const textLine = textLines[i];
+        const tdTextArray = textLine.split(':');
+        for (let j = 0; j < tdTextArray.length; j++) {
+            const tdText = tdTextArray[j];
+            tableHtml += '<td>' + tdText + '</td>';
+            if(j == 0) {
+                tableHtml += '<td>';
+                tableHtml += returnTimeInFormat(startTime);
+                var minutesIncrement = timeTextToMinutes(tdTextArray[1]);
+                timeMinutes += minutesIncrement;
+                startTime = convertMinutesToMilitaryTime(timeMinutes);
+                tableHtml += '</td>';
+            }
+        }
+        // calculate start time and put that in a td element
+            
+
+        // calculate start time for final td
+        tableHtml += '</tr>';
+    }
+    tableHtml += '</tr>';
+    tableHtml += '</tbody>';
+    tableHtml += '<tfoot><tr><th>Ending Time</th><td colspan="2">'+ returnTimeInFormat(startTime) +'</td></tr></tfoot>';
+    tableHtml += '</table>';
+    tableWrap.innerHTML = tableHtml;
+    
+    
+
+
+
+</script>
+  </body>
+</html>
