@@ -37,7 +37,9 @@
             border-left: 1px solid #000;
             padding: var(--tablegap);
         }
-        
+        body.hideDurationCells .durationCell {
+            display: none;
+        }
         
     </style>
     
@@ -52,9 +54,14 @@
     
     <div id="formBonus" >
         <div class="row">
+            <span>Display duration column?</span> <label><input name="d" value="y" type="radio" checked>Yes</label>
+            <label><input name="d" value="n" type="radio">No</label>
+        </div>
+        <div class="row">
             <span>Time format</span> <label><input name="f" value="m" type="radio" checked>Military</label>
             <label><input name="f" value="s" type="radio">Standard</label>
         </div>
+        
     <div><label>Number of textarea lines <input id="l" name="l" type="number" value="5"></label></div>
     <div><label>Start time <input id="t" name="t" type="time"></label></div>
     <!-- <div class="row"><label>End time (optional) <input name="e" id="e" type="time"></label><span>Use unitless numbers (or no colons or numbers) to create ratios of time between items</span></div> -->
@@ -108,7 +115,11 @@ urlParams.forEach((value, key) => {
     if(showFormInput.checked) {
         formBonus.style['display'] = 'none';
     }
-
+// duration visibility
+const showDurationColVal = document.querySelector('[name="d"]:checked').value;
+if(showDurationColVal == 'n') {
+    document.body.className += ' hideDurationCells';
+}
 // time format
 const timeFormat = document.querySelector('[name="f"]:checked').value;
 
@@ -205,7 +216,7 @@ function returnTimeInFormat(time) {
     tableHtml += '<table><thead><tr>';
         tableHtml += '<th>Activity</th>';
         tableHtml += '<th>Start Time</th>';
-        tableHtml += '<th>Duration</th>';
+        tableHtml += '<th class="durationCell">Duration</th>';
         tableHtml += '</tr></thead><tbody>';
     for (let i = 0; i < textLines.length; i++) {
         tableHtml += '<tr>';
@@ -213,7 +224,13 @@ function returnTimeInFormat(time) {
         const tdTextArray = textLine.split(':');
         for (let j = 0; j < tdTextArray.length; j++) {
             const tdText = tdTextArray[j];
-            tableHtml += '<td>' + tdText + '</td>';
+            if(j == 1) {
+                tableHtml += '<td class="durationCell">';
+            }
+            else {
+                tableHtml += '<td>';
+            }
+            tableHtml += tdText + '</td>';
             if(j == 0) {
                 tableHtml += '<td>';
                 tableHtml += returnTimeInFormat(startTime);
