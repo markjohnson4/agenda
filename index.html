@@ -23,7 +23,7 @@
             margin-top: 0;
             margin-left: 1em;
         }
-        textarea, input {
+        textarea, input, button {
             font-size: inherit;
             font-family: inherit;
         }
@@ -38,14 +38,22 @@
             border-left: 1px solid #000;
             padding: var(--tablegap);
         }
+        
         body.hideDurationCells .durationCell {
             display: none;
         }
-        
+        .alert {
+            border: 1px solid red;
+            padding: 5px;
+            background: pink;
+        }
     </style>
     
   </head>
   <body style="margin: 1em;">
+    <div class="alert">Important!  An agenda-breaking change has been made!  As of 2023-12-21: <br />
+        * a colon is no longer needed to separate an activity from its duration0 <br />
+        * minutes are assumed (so you only need to write a number)</div>    
     <form id="f" action="">
         <!-- For every input, remember to add a name and id attribute with the same value -->
     <div class="row">
@@ -59,15 +67,19 @@
             <label><input name="d" value="n" type="radio">No</label>
         </div>
         <div class="row">
+            <span>Display past activities?</span> <label><input name="p" value="y" type="radio" checked>Yes</label>
+            <label><input name="p" value="n" type="radio">No</label>
+        </div>
+        <div class="row">
             <span>Time format</span> <label><input name="f" value="m" type="radio" checked>Military</label>
             <label><input name="f" value="s" type="radio">Standard</label>
         </div>
         
     <div><label>Number of textarea lines <input id="l" name="l" type="number" value="5"></label></div>
-    <div><label>Start time <input id="t" name="t" type="time"></label></div>
+    <div><label>Start time <input id="t" name="t" type="time"></label> <button onClick="setStartTimeToNow()">Set to Now</button></div>
     <!-- <div class="row"><label>End time (optional) <input name="e" id="e" type="time"></label><span>Use unitless numbers (or no colons or numbers) to create ratios of time between items</span></div> -->
     <div>
-        <label style="display: block;">Add agenda items in the format "activity:duration" where duration can be something like 15m (15 minutes) or 2h (2 hours).
+        <label style="display: block;">Add agenda items in the format "activity number" where "number" is the amount of time you want to do the activity for (minutes or ratio).
             <textarea id="a" name="a" style="display:block; border: 1px solid #000; width: 100%; "  ></textarea>
         </label>
     </div>
@@ -177,23 +189,11 @@ function getMinutesDifferenceBetweenTwoMilitaryTimes(time1, time2) {
     }
     return minutesDiff;
 }
-function timeTextToMinutes(timeText) {
+function timeTextToNumber(timeText) {
     var timeNumber = Number(timeText); 
-    var totalMinutes = 0;
-    if(isNaN(timeNumber)) {
-        timeNumber = Number(timeText.slice(0, -1));
-        if (timeText.indexOf('m') > -1) {
-            totalMinutes += timeNumber;
-        }
-        if (timeText.indexOf('h') > -1) {
-            totalMinutes += timeNumber*60;
-        }
-    }
-    else {
-        console.log(timeNumber);
-    }
     
-    return totalMinutes;
+    
+    return timeNumber;
 }
 function returnTimeInFormat(time) {
     if(timeFormat == 's') {
@@ -203,9 +203,20 @@ function returnTimeInFormat(time) {
         return time;
     }
 }
+// todo
+const startTimeInput = document.getElementById('t');
+function setStartTimeToNow() {
+    const d = new Date();
+    let hour = d.getHours();
+    let minutes = d.getMinutes();
+    startTimeInput.value = hour + ':' + minutes;
+}
+function hidePastActivities(timeNow) {
+
+}
 
     const tableWrap = document.getElementById('tableWrap');
-    var startTime = document.getElementById('t').value;
+    var startTime = startTimeInput.value;
     // var endTime = document.getElementById('e').value;
     const textareaTxt = textarea.value;
     var textLines = textareaTxt.split(/\r?\n/);
@@ -221,26 +232,43 @@ function returnTimeInFormat(time) {
         tableHtml += '</tr></thead><tbody>';
     for (let i = 0; i < textLines.length; i++) {
         tableHtml += '<tr>';
-        const textLine = textLines[i];
-        const tdTextArray = textLine.split(':');
-        for (let j = 0; j < tdTextArray.length; j++) {
-            const tdText = tdTextArray[j];
-            if(j == 1) {
-                tableHtml += '<td class="durationCell">';
-            }
-            else {
-                tableHtml += '<td>';
-            }
-            tableHtml += tdText + '</td>';
-            if(j == 0) {
-                tableHtml += '<td>';
-                tableHtml += returnTimeInFormat(startTime);
-                var minutesIncrement = timeTextToMinutes(tdTextArray[1]);
-                timeMinutes += minutesIncrement;
-                startTime = convertMinutesToMilitaryTime(timeMinutes);
-                tableHtml += '</td>';
-            }
-        }
+        var textLine = textLines[i];
+        textLine = textLine.trim();
+        var lastSpaceIndex = textLine.lastIndexOf(' ');
+        const activityText = textLine.substring(0, lastSpaceIndex);
+        const activityNumber = textLine.substring(lastSpaceIndex);
+        console.log(activityText);
+        console.log(activityNumber);
+        tableHtml += '<td>' + activityText + '</td>';
+        tableHtml += '<td>' + returnTimeInFormat(startTime) + '</td>';
+        // calculate minutes to increment for next start time
+        var minutesIncrement = timeTextToNumber(activityNumber);
+        timeMinutes += minutesIncrement;
+        startTime = convertMinutesToMilitaryTime(timeMinutes);
+        // ...
+        tableHtml += '<td class="durationCell">' + activityNumber + '</td>';
+
+        // const tdTextArray = textLine.split(':');
+        // for (let j = 0; j < tdTextArray.length; j++) {
+        //     const tdText = tdTextArray[j];
+        //     if(j == 1) {
+        //         tableHtml += '<td class="durationCell">';
+        //     }
+        //     else {
+        //         tableHtml += '<td>';
+        //     }
+        //     tableHtml += tdText + '</td>';
+
+        //     // after the first cell, calculate the start time cell
+        //     if(j == 0) {
+        //         tableHtml += '<td>';
+        //         tableHtml += returnTimeInFormat(startTime);
+        //         var minutesIncrement = timeTextToNumber(tdTextArray[1]);
+        //         timeMinutes += minutesIncrement;
+        //         startTime = convertMinutesToMilitaryTime(timeMinutes);
+        //         tableHtml += '</td>';
+        //     }
+        // }
         // calculate start time and put that in a td element
             
 
