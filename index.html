@@ -64,17 +64,17 @@
             <span>Display duration column?</span> <label><input name="d" value="y" type="radio" checked>Yes</label>
             <label><input name="d" value="n" type="radio">No</label>
         </div>
-        <div class="row">
+        <!-- <div class="row">
             <span>Display past activities?</span> <label><input name="p" value="y" type="radio" checked>Yes</label>
             <label><input name="p" value="n" type="radio">No</label>
-        </div>
+        </div> -->
         <div class="row">
             <span>Time format</span> <label><input name="f" value="m" type="radio" checked>Military</label>
             <label><input name="f" value="s" type="radio">Standard</label>
         </div>
         
     <div><label>Number of textarea lines <input id="l" name="l" type="number" value="5"></label></div>
-    <div><label>Start time <input id="t" name="t" type="time"></label> <button onClick="setStartTimeToNow()">Set to Now</button></div>
+    <div><label>Start time <input id="t" name="t" type="time"></label> <button type="button" onClick="setStartTimeToNow()">Set to Now</button></div>
     <!-- <div class="row"><label>End time (optional) <input name="e" id="e" type="time"></label><span>Use unitless numbers (or no colons or numbers) to create ratios of time between items</span></div> -->
     <div>
         <label style="display: block;">Add agenda items in the format "activity number" where "number" is the amount of time you want to do the activity for (minutes or ratio).
@@ -161,6 +161,14 @@ timeValue += (hours >= 12) ? " P.M." : " A.M.";  // get AM/PM
 // show
 return timeValue;
 }
+function numberWithOptionalPreZero(num) {
+    if(num < 10) {
+        return '0' + num;
+    }
+    else {
+        return num;
+    }
+}
 function convertMinutesToMilitaryTime(minutes) {
     var hours = Math.floor(minutes/60);
     var newMinutes = minutes - hours*60;
@@ -207,7 +215,7 @@ function setStartTimeToNow() {
     const d = new Date();
     let hour = d.getHours();
     let minutes = d.getMinutes();
-    startTimeInput.value = hour + ':' + minutes;
+    startTimeInput.value = numberWithOptionalPreZero(hour) + ':' + numberWithOptionalPreZero(minutes);
 }
 function hidePastActivities(timeNow) {
 
