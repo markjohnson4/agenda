@@ -27,6 +27,10 @@
             font-size: inherit;
             font-family: inherit;
         }
+        textarea {
+            border: 1px solid #000;
+            width: 100%;
+        }
         table {
             width: 100%;
             border-right: 1px solid #000;
@@ -51,205 +55,210 @@
     
   </head>
   <body style="margin: 1em;">   
+    <!-- Copy URL Feature: HTML  -->
+    <div>
+        <button type="button" onclick="copyURL()">copy URL to clipboard</button>
+        <span id="copyText"></span>
+    </div>
     <form id="f" action="">
-        <!-- For every input, remember to add a name and id attribute with the same value -->
+
     <div class="row">
         <span>Show Form?</span> <label><input name="s" value="y" type="radio" checked>Yes</label>
         <label><input name="s" value="n" type="radio">No</label>
     </div>
-    <p> <a href="https://docs.google.com/document/d/1FaS_KgJ85MnXVl9iNqmWHh-JPkvb4tddKzijILKE2bY/edit">Learn more about the agenda builder web tool</a></p>
+    
     
     <div id="formBonus" >
-        <div class="row">
+        <!-- <div class="row">
             <span>Display duration column?</span> <label><input name="d" value="y" type="radio" checked>Yes</label>
             <label><input name="d" value="n" type="radio">No</label>
-        </div>
+        </div> -->
         <!-- <div class="row">
             <span>Display past activities?</span> <label><input name="p" value="y" type="radio" checked>Yes</label>
             <label><input name="p" value="n" type="radio">No</label>
         </div> -->
-        <div class="row">
+        <!-- <div class="row">
             <span>Time format</span> <label><input name="f" value="m" type="radio" checked>Military</label>
             <label><input name="f" value="s" type="radio" />Standard</label>
-        </div>
+        </div> -->
+        
         <div class="row">
-            <span>Activity Units</span> <label><input name="u" value="m" type="radio" checked>Minutes</label>
-            <label><input name="u" value="r" type="radio" />Ratio</label>
+            <span>Agenda Alignment</span> <label><input name="aa" value="s" type="radio" checked>Start Time</label>
+            <label><input name="aa" value="e" type="radio" />End Time</label>
+            <!-- <label><input name="a" value="f" type="radio" />Force fit between start time and end time</label> -->
         </div>
         
-        <div><label>Number of textarea lines <input id="l" name="l" type="number" value="5"></label></div>
-        <div><label>Number of excluded activities <input id="ex" name="ex" type="number" value="0"></label></div>
-        <div><label>Start time <input id="t" name="t" type="time"></label> <button type="button" onClick="setStartTimeToNow()">Set to Now</button></div>
-    <div class="row"><label>End time (optional) <input name="e" id="e" type="time"></label><span>Setting an end time and enabling ratio units will fit all activities into the start time / end time window.</span></div>
+        
+        <!-- <div><label>Number of excluded activities <input id="ex" name="ex" type="number" value="0"></label></div> -->
+        <div><label>Start time <input id="t" name="t" type="datetime-local"></label> </div>
+    <div class="row"><label>End time <input name="e" id="e" type="datetime-local"></label>
+        <!-- <span>Setting an end time and enabling ratio units will fit all activities into the start time / end time window.</span> -->
+    </div>
+    
     <div>
-        <label style="display: block;">Add agenda items in the format "activity number" where "number" is the amount of time you want to do the activity for (minutes or ratio).
-            <textarea id="a" name="a" style="display:block; border: 1px solid #000; width: 100%; "  ></textarea>
+        <label style="display: block;">Add agenda items in the format "[activity] [number]" where "[number]" is the amount of minutes needed to do the activity.
+            <textarea id="a" name="a" style=""  ></textarea>
         </label>
     </div>
     </div>
     
-    <div style="margin-top: 20px; "><button style="width: 100%; background: #000; color: #fff; appearance: none; padding: 5px; border: 0;" type="submit">
-        Submit
-    </button></div>
+    
 </form>
+<div>
+        <div>Minutes calculator</div><label >Days: <input type="number" min="0" id="calculator_days"></label><label > Hours: <input min="0" type="number" id="calculator_hours"></label> = <span id="calculator_minutes">0</span> minutes
+    </div>
 <div id="tableWrap"></div>
-
+<p> <a href="https://docs.google.com/document/d/1FaS_KgJ85MnXVl9iNqmWHh-JPkvb4tddKzijILKE2bY/edit">Learn more about the agenda builder web tool</a></p>
 
 <script type="text/javascript">
 
+// # Initial variables
+const urlBase = window.location.protocol  + "//" + window.location.host + window.location.pathname  + "?";
+const form = document.querySelector('form');
+var formDataString;
+
+// # minutes calculator
+const calculator_days = document.getElementById('calculator_days');
+const calculator_hours = document.getElementById('calculator_hours');
+const calculator_minutes = document.getElementById('calculator_minutes');
+function triggerMinutesCalculator() {
+    let minutes = calculator_days.value * 60 * 24 + calculator_hours.value * 60;
+    calculator_minutes.innerHTML = minutes;
+}
+calculator_days.addEventListener("keyup", triggerMinutesCalculator, false);
+calculator_hours.addEventListener("keyup", triggerMinutesCalculator, false);
 
 
-// populate fields (can be used in a lot of apps!)
-const urlParams = new URLSearchParams(window.location.search);
-// https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-urlParams.forEach((value, key) => {
-    var input = document.querySelectorAll('[name="'+key+'"]');
-    var inputType = input[0].type;
-    if(inputType == 'checkbox') {
-        if(value == 'on') {
-            input[0].checked = true;
+// # Simple Functions
+function minutesToMilliseconds(minutes) {
+    return minutes*60000;
+}
+
+// # Form and URL Functions
+var updateFormFromURL = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.forEach((value, key) => {
+        var input = document.querySelector('[name="'+key+'"]');
+        var inputType = input.type;
+        if(inputType == 'checkbox') {
+            if(value == 'on') {
+
+                input.checked = true;
+            }
         }
-    }
-    else if(inputType == 'radio') {
-        document.querySelectorAll('[name="'+key+'"][value="'+value+'"]')[0].checked = true;
-    }
-    else {
-        document.querySelectorAll('[name="'+key+'"]')[0].value = value;
-    }
-});
+        else if(inputType == 'radio') {
+            document.querySelector('[name="'+key+'"][value="'+value+'"]').checked = true;
+        }
+        else {
+            document.querySelector('[name="'+key+'"]').value = value;
+        }
+    });
+}
 
-// # app-specific stuff
+var updateURLFromForm = function(event) {
+    formDataString = new URLSearchParams(new FormData(form)).toString();
+    window.history.replaceState( {} , '', urlBase + formDataString);
+}
 
-// ## input to update number of rows in checkbox
-    const textarea = document.getElementById('a');
-    const linesInput = document.getElementById('l');
-    textarea.rows = linesInput.value;
+// # Copy URL Feature: Javascript
+const copyTextElement = document.getElementById('copyText');
+var copyURL = function() {
+    let url = document.location.href
 
-// ## input to toggle visibility of content
+    navigator.clipboard.writeText(url).then(function() {
+        copyTextElement.innerHTML = 'Copied!';
+    }, function() {
+        copyTextElement.innerHTML = 'Error';
+    });
+    setTimeout(function(){copyTextElement.innerHTML = '';}, 1000);
+}
+
+
+// # input to toggle visibility of content
     const formBonus = document.getElementById('formBonus');
     const showFormInput = document.querySelectorAll('[name="s"][value="n"]')[0];
-    if(showFormInput.checked) {
-        formBonus.style['display'] = 'none';
+    var showHideForm = function() {
+        if(showFormInput.checked) {
+            formBonus.style['display'] = 'none';
+        }
+        else {
+            formBonus.style['display'] = 'block';
+        }
     }
-// duration column visibility
-const showDurationColVal = document.querySelector('[name="d"]:checked').value;
-if(showDurationColVal == 'n') {
-    document.body.className += ' hideDurationCells';
-}
-// time format
-const timeFormat = document.querySelector('[name="f"]:checked').value;
+    
+    
+// # duration column visibility
 
+// var showDurationCol = function() {
+//     var showDurationColVal = document.querySelector('[name="d"]:checked').value;
+//     if(showDurationColVal == 'n') {
+//         document.body.className += ' hideDurationCells';
+//     }
+//     else {
+//         document.body.className = '';
+//     }
+// }
+
+
+// todo: update these on keyup/change
 // activity units
-const activityUnits = document.querySelector('[name="u"]:checked').value;
+// var activityUnits = document.querySelector('[name="u"]:checked').value;
 
 // excluded activities number
-const excludedActivitiesNum = document.querySelector('[name="ex"]').value;
+// var excludedActivitiesNum = document.querySelector('[name="ex"]').value;
 
 
 // constants
 const startTimeInput = document.getElementById('t');
+const endTimeInput = document.getElementById('e');
+const textarea = document.getElementById('a');
 
-// turn textarea content into array 
-function militaryTimeToStandard(time) {
-    // https://stackoverflow.com/questions/29206453/best-way-to-convert-military-time-to-standard-time-in-javascript
-    time = time.split(':'); // convert to array
 
-// fetch
-var hours = Number(time[0]);
-var minutes = Number(time[1]);
-
-// calculate
-var timeValue;
-
-if (hours > 0 && hours <= 12) {
-  timeValue= "" + hours;
-} else if (hours > 12) {
-  timeValue= "" + (hours - 12);
-} else if (hours == 0) {
-  timeValue= "12";
-}
- 
-timeValue += (minutes < 10) ? ":0" + minutes : ":" + minutes;  // get minutes
-timeValue += (hours >= 12) ? " P.M." : " A.M.";  // get AM/PM
-
-// show
-return timeValue;
-}
-function numberWithOptionalPreZero(num) {
-    if(num < 10) {
-        return '0' + num;
-    }
-    else {
-        return num;
-    }
-}
-function convertMinutesToMilitaryTime(minutes) {
-    var hours = Math.floor(minutes/60);
-    var newMinutes = minutes - hours*60;
-    var preHours = '';
-    var preMinutes = '';
-    if(hours < 10) {
-        preHours = '0';
-    }
-    if(newMinutes < 10) {
-        preMinutes = '0';
-    }
-    return preHours + hours + ':' + preMinutes + newMinutes;
-}
-function convertMilitaryTimeToMinutes(militaryTime) {
-    var timeArray = militaryTime.split(':');
-    return timeArray[0]*60 + Number(timeArray[1]);
-}
-function getMinutesDifferenceBetweenTwoMilitaryTimes(time1, time2) {
-    var minutes1 = convertMilitaryTimeToMinutes(time1);
-    var minutes2 = convertMilitaryTimeToMinutes(time2);
-    var minutesDiff = minutes1 - minutes2;
-    if(minutesDiff < 0) {
-        minutesDiff += 24*60;
-    }
-    return minutesDiff;
-}
-function returnTimeInFormat(time) {
-    if(timeFormat == 's') {
-        return militaryTimeToStandard(time);
-    }
-    else {
-        return time;
-    }
-}
-function setStartTimeToNow() {
-    const d = new Date();
-    let hour = d.getHours();
-    let minutes = d.getMinutes();
-    startTimeInput.value = numberWithOptionalPreZero(hour) + ':' + numberWithOptionalPreZero(minutes);
-}
-
-function hidePastActivities(timeNow) {
-
-}
-function roundUpToDecimal(value, precision) {
-    var multiplier = Math.pow(10, precision || 0);
-    return Math.ceil(value * multiplier) / multiplier;
-}
 function getActivityArray() {
     const textareaTxt = textarea.value;
-    var textLines = textareaTxt.split(/\r?\n/);
-    textLines = textLines.filter((n) => n.length > 1);
-    var allActivitiesArr = [];
-    for (let i = 0; i < textLines.length; i++) {
-        var textLine = textLines[i];
-        textLine = textLine.trim();
-        var activityArr = [];
-        var lastSpaceIndex = textLine.lastIndexOf(' ');
-        var activityText = textLine.substring(0, lastSpaceIndex);
-        var activityNumber = Number(textLine.substring(lastSpaceIndex).trim());
-        activityArr.push(activityText);
-        activityArr.push(activityNumber);
+    var allGroupsArr = [];
+    var textGroups = textareaTxt.split(/\n\n/);
+    for (let index = 0; index < textGroups.length; index++) {
+        var allActivitiesArr = [];
+        var textGroup = textGroups[index];
+        var textLines = textGroup.split(/\r?\n/);
+        textLines = textLines.filter((n) => n.length > 1);
+        var activityGroupName = textLines.shift();
         
-        allActivitiesArr.push(activityArr);
+        for (let i = 0; i <= textLines.length; i++) {
+            
+            var activityArr = [];
+            
+            var activityText;
+            var activityDuration;
+            activityArr.push(activityGroupName);
+
+            if(i == textLines.length) {
+                activityText = 'Done';
+                activityDuration = 0;
+            }
+            else {
+                var textLine = textLines[i];
+                textLine = textLine.trim();
+                var lastSpaceIndex = textLine.lastIndexOf(' ');
+                activityText = textLine.substring(0, lastSpaceIndex);
+                activityDuration = Number(textLine.substring(lastSpaceIndex).trim());
+            }
+            activityArr.push(activityText);
+            activityArr.push(activityDuration);
+            
+            allActivitiesArr.push(activityArr);
+        }
+        allGroupsArr.push(allActivitiesArr);
     }
-    return allActivitiesArr;
+    
+    return allGroupsArr;
 }
+function getTimeStampFromDateTimeLocalValue(val) {
+    return val;
+}
+
+
 var roundedExcessCounter = 0;
 function getActivityDurationInMinutes(number) {
     if(activityUnits == 'm') {
@@ -268,96 +277,196 @@ function getActivityDurationInMinutes(number) {
         return roundedMinutes;
     }
 }
+
 function getTotalActivityMinutesFromArray(array) {
-    var totalActivityMinutes = 0;
+    var totalActivityMinutesArr = [];
     for (let index = 0; index < array.length; index++) {
-        totalActivityMinutes += array[index][1];
+        var totalActivityMinutes = 0;
+        const activityGroup = array[index];
+        for (let index = 0; index < activityGroup.length; index++) {
+            totalActivityMinutes += activityGroup[index][2];
+        }
+        totalActivityMinutesArr.push(totalActivityMinutes);
     }
-    return totalActivityMinutes;
+    
+    return totalActivityMinutesArr;
 }
-    
-    const tableWrap = document.getElementById('tableWrap');
-    var startTime = startTimeInput.value;
-    var endTime = document.getElementById('e').value;
-    var startTimeEndTimeTotalMinutes = getMinutesDifferenceBetweenTwoMilitaryTimes(endTime, startTime);
 
-    var activityArray = getActivityArray();
-    // remove excluded activities
-    activityArray.splice(activityArray.length - excludedActivitiesNum, excludedActivitiesNum);
-    console.log(activityArray);
 
-    const totalActivityMinutes = getTotalActivityMinutesFromArray(activityArray);
-
+const tableWrap = document.getElementById('tableWrap');
     
     
 
-// todo
+    
 
 
-    var timeMinutes = convertMilitaryTimeToMinutes(startTime);
+
+
     // const minutesDiff = getMinutesDifferenceBetweenTwoMilitaryTimes(startTime, endTime);
 
-    var tableHtml = '';
-    tableHtml += '<div>Total estimated time: <strong>'+ totalActivityMinutes +'</strong><div>';
-    if(activityUnits == 'r') {
-        tableHtml += '<div>Alotted time: <strong>'+ startTimeEndTimeTotalMinutes +'</strong><div>';
-        tableHtml += '<div>Ratio of total estimated time to alotted time: <strong>'+ Math.round(totalActivityMinutes*100/startTimeEndTimeTotalMinutes) +'%</strong><div>';
-    }
-    tableHtml += '<table><thead><tr>';
-        tableHtml += '<th>Activity</th>';
-        tableHtml += '<th>Start Time</th>';
-        tableHtml += '<th class="durationCell">Duration</th>';
-        tableHtml += '</tr></thead><tbody>';
-    for (let i = 0; i < activityArray.length; i++) {
-        tableHtml += '<tr>';
-        var tableRowData = activityArray[i];
+    // var tableHtml = '';
+    // tableHtml += '<div>Total estimated time: <strong>'+ totalActivityMinutes +'</strong><div>';
+    // if(activityUnits == 'r') {
+    //     tableHtml += '<div>Alotted time: <strong>'+ startTimeEndTimeTotalMinutes +'</strong><div>';
+    //     tableHtml += '<div>Ratio of total estimated time to alotted time: <strong>'+ Math.round(totalActivityMinutes*100/startTimeEndTimeTotalMinutes) +'%</strong><div>';
+    // }
+    // tableHtml += '<table><thead><tr>';
+    //     tableHtml += '<th>Activity</th>';
+    //     tableHtml += '<th>Start Time</th>';
+    //     tableHtml += '<th class="durationCell">Duration</th>';
+    //     tableHtml += '</tr></thead><tbody>';
+    // for (let i = 0; i < activityArray.length; i++) {
+    //     tableHtml += '<tr>';
+    //     var tableRowData = activityArray[i];
         
 
-        tableHtml += '<td>' + tableRowData[0] + '</td>';
-        tableHtml += '<td>' + returnTimeInFormat(startTime) + '</td>';
-        // calculate minutes to increment for next start time
-        var minutesIncrement = getActivityDurationInMinutes(tableRowData[1]);
-        timeMinutes += minutesIncrement;
-        startTime = convertMinutesToMilitaryTime(timeMinutes);
-        // ...
-        tableHtml += '<td class="durationCell">' + minutesIncrement + '</td>';
+    //     tableHtml += '<td>' + tableRowData[0] + '</td>';
+    //     tableHtml += '<td>' + startTime + '</td>';
+    //     // calculate minutes to increment for next start time
+    //     var minutesIncrement = getActivityDurationInMinutes(tableRowData[1]);
+    //     timeMinutes += minutesIncrement;
+    //     startTime = convertMinutesToMilitaryTime(timeMinutes);
+    //     // ...
+    //     tableHtml += '<td class="durationCell">' + minutesIncrement + '</td>';
 
-        // const tdTextArray = textLine.split(':');
-        // for (let j = 0; j < tdTextArray.length; j++) {
-        //     const tdText = tdTextArray[j];
-        //     if(j == 1) {
-        //         tableHtml += '<td class="durationCell">';
-        //     }
-        //     else {
-        //         tableHtml += '<td>';
-        //     }
-        //     tableHtml += tdText + '</td>';
+        
+    //     // calculate start time for final td
+    //     tableHtml += '</tr>';
+    // }
+    // tableHtml += '</tr>';
+    // tableHtml += '</tbody>';
+    // tableHtml += '<tfoot><tr><th>Ending Time</th><td colspan="2">'+ startTime +'</td></tr></tfoot>';
+    // tableHtml += '</table>';
+    // tableWrap.innerHTML = tableHtml;
 
-        //     // after the first cell, calculate the start time cell
-        //     if(j == 0) {
-        //         tableHtml += '<td>';
-        //         tableHtml += returnTimeInFormat(startTime);
-        //         var minutesIncrement = timeTextToNumber(tdTextArray[1]);
-        //         timeMinutes += minutesIncrement;
-        //         startTime = convertMinutesToMilitaryTime(timeMinutes);
-        //         tableHtml += '</td>';
-        //     }
-        // }
-        // calculate start time and put that in a td element
-            
-
-        // calculate start time for final td
-        tableHtml += '</tr>';
+    var updateOutput = function() {
+        showHideForm();
+        // showDurationCol();
     }
-    tableHtml += '</tr>';
-    tableHtml += '</tbody>';
-    tableHtml += '<tfoot><tr><th>Ending Time</th><td colspan="2">'+ returnTimeInFormat(startTime) +'</td></tr></tfoot>';
-    tableHtml += '</table>';
-    tableWrap.innerHTML = tableHtml;
+
+var updateAll = function() {
+    updateURLFromForm();
+    updateOutput();
+}    
+    
+// ## triggering previously defined functions...
+updateFormFromURL();
+updateOutput();
+form.addEventListener("keyup", updateAll, false);
+form.addEventListener("change", updateAll, false);
+
+// # end
+// console.log(getActivityArray());
+
+var startDate = new Date(startTimeInput.value);
+var startTime = startDate.getTime();
+var endDate = new Date(endTimeInput.value);
+var endTime = endDate.getTime();
+
+var activityArray = getActivityArray();
+    // remove excluded activities
+    // activityArray.splice(activityArray.length - excludedActivitiesNum, excludedActivitiesNum);
+
+    const totalActivityMinutesArray = getTotalActivityMinutesFromArray(activityArray);
+    // console.log(totalActivityMinutes);
+// console.log(startTime.toLocalString());
+
+function timestampToTime(timestamp) {
+    // console.log(date2.toLocaleDateString());
+// console.log(date2.toLocaleString());
+    let date = new Date(timestamp);
+    return date.toLocaleString(false, {timeStyle: 'short'});
+}
+
+function activityArrayMinutesToTimestamps(activityGroupsArr, totalTimesArr, direction = false) {
+    var finalArray = [];
+    for (let index = 0; index < activityGroupsArr.length; index++) {
+        const activityGroup = activityGroupsArr[index];
+        const activityGroupTotalTime = totalTimesArr[index];
+        var timeStampCounter;
+
+        if(direction == 'backwards') {
+            timeStampCounter = endTime - minutesToMilliseconds(activityGroupTotalTime);
+        }
+        else {
+            timeStampCounter = startTime;
+        }
+        var newArr = [];
+        
+        for (let index = 0; index < activityGroup.length; index++) {
+            var item = activityGroup[index];
+            // item.push(timestampToTime(timeStampCounter));
+            item.push(timeStampCounter);
+            timeStampCounter += minutesToMilliseconds(item[2]);
+            newArr.push(item);
+        }
+        // newArr.push(timeStampCounter);
+        finalArray.push(newArr);
+    }
+    return finalArray;
     
     
+}
+
+var finalActivityGroupsForwards = activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray);
+var finalActivityGroupsBackwards = activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray, 'backwards');
+
+function sortByTimestamps( a, b ) {
+  if ( a[3] < b[3] ){
+    return -1;
+  }
+  if ( a[3] > b[3] ){
+    return 1;
+  }
+  return 0;
+}
 
 
+
+function flattenAndSortFinalActivityGroups(finalActivityGroups) {
+    var flatArr = [];
+    for (let index = 0; index < finalActivityGroups.length; index++) {
+        const group = finalActivityGroups[index];
+        for (let index = 0; index < group.length; index++) {
+            const activity = group[index];
+            flatArr.push(activity);
+        }
+    }
+    flatArr.sort( sortByTimestamps );
+    return flatArr;
+}
+
+// console.log(activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray));
+// console.log(activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray, 'backwards'));
+
+// marky
+
+function outputData(array) {
+    for (let index = 0; index < array.length; index++) {
+        const item = array[index];
+        
+    }
+}
+
+console.log(flattenAndSortFinalActivityGroups(finalActivityGroupsForwards));
+console.log(flattenAndSortFinalActivityGroups(finalActivityGroupsBackwards));
+
+
+// console.log(date2.toLocaleDateString());
+// console.log(date2.toLocaleString());
+
+// # textarea auto-resizing
+// taken from here: https://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
+const tx = document.getElementsByTagName("textarea");
+for (let i = 0; i < tx.length; i++) {
+  tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+  tx[i].addEventListener("input", OnInput, false);
+}
+
+function OnInput() {
+  this.style.height = 'auto';
+  this.style.height = (this.scrollHeight) + "px";
+}
 
 </script>
   </body>
