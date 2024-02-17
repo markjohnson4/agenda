@@ -41,6 +41,17 @@
             border-top: 1px solid #000;
             border-left: 1px solid #000;
             padding: var(--tablegap);
+            text-align: left;
+           
+        }
+        tr > *:first-child {
+            width: 100%;
+        }
+        tr > *:last-child {
+            white-space: nowrap;
+        }
+        tr.done {
+            background: #cbf2fd;
         }
         
         body.hideDurationCells .durationCell {
@@ -50,6 +61,11 @@
             border: 1px solid red;
             padding: 5px;
             background: pink;
+        }
+        h3 {
+            margin: 0 0 5px;
+            font-size: 1rem;
+            opacity: 0.5;
         }
     </style>
     
@@ -107,7 +123,7 @@
 <div>
         <div>Minutes calculator</div><label >Days: <input type="number" min="0" id="calculator_days"></label><label > Hours: <input min="0" type="number" id="calculator_hours"></label> = <span id="calculator_minutes">0</span> minutes
     </div>
-<div id="tableWrap"></div>
+<div id="outputHtml">test</div>
 <p> <a href="https://docs.google.com/document/d/1FaS_KgJ85MnXVl9iNqmWHh-JPkvb4tddKzijILKE2bY/edit">Learn more about the agenda builder web tool</a></p>
 
 <script type="text/javascript">
@@ -212,6 +228,7 @@ var copyURL = function() {
 const startTimeInput = document.getElementById('t');
 const endTimeInput = document.getElementById('e');
 const textarea = document.getElementById('a');
+const agendaAlignmentInputEndtime = document.querySelector('[name="aa"][value="e"]');
 
 
 function getActivityArray() {
@@ -293,89 +310,31 @@ function getTotalActivityMinutesFromArray(array) {
 }
 
 
-const tableWrap = document.getElementById('tableWrap');
+const outputHtmlElem = document.getElementById('outputHtml');
     
-    
+var startTime, endDate, endTime;    
 
     
 
 
 
 
-    // const minutesDiff = getMinutesDifferenceBetweenTwoMilitaryTimes(startTime, endTime);
 
-    // var tableHtml = '';
-    // tableHtml += '<div>Total estimated time: <strong>'+ totalActivityMinutes +'</strong><div>';
-    // if(activityUnits == 'r') {
-    //     tableHtml += '<div>Alotted time: <strong>'+ startTimeEndTimeTotalMinutes +'</strong><div>';
-    //     tableHtml += '<div>Ratio of total estimated time to alotted time: <strong>'+ Math.round(totalActivityMinutes*100/startTimeEndTimeTotalMinutes) +'%</strong><div>';
-    // }
-    // tableHtml += '<table><thead><tr>';
-    //     tableHtml += '<th>Activity</th>';
-    //     tableHtml += '<th>Start Time</th>';
-    //     tableHtml += '<th class="durationCell">Duration</th>';
-    //     tableHtml += '</tr></thead><tbody>';
-    // for (let i = 0; i < activityArray.length; i++) {
-    //     tableHtml += '<tr>';
-    //     var tableRowData = activityArray[i];
-        
-
-    //     tableHtml += '<td>' + tableRowData[0] + '</td>';
-    //     tableHtml += '<td>' + startTime + '</td>';
-    //     // calculate minutes to increment for next start time
-    //     var minutesIncrement = getActivityDurationInMinutes(tableRowData[1]);
-    //     timeMinutes += minutesIncrement;
-    //     startTime = convertMinutesToMilitaryTime(timeMinutes);
-    //     // ...
-    //     tableHtml += '<td class="durationCell">' + minutesIncrement + '</td>';
-
-        
-    //     // calculate start time for final td
-    //     tableHtml += '</tr>';
-    // }
-    // tableHtml += '</tr>';
-    // tableHtml += '</tbody>';
-    // tableHtml += '<tfoot><tr><th>Ending Time</th><td colspan="2">'+ startTime +'</td></tr></tfoot>';
-    // tableHtml += '</table>';
-    // tableWrap.innerHTML = tableHtml;
-
-    var updateOutput = function() {
-        showHideForm();
-        // showDurationCol();
-    }
-
-var updateAll = function() {
-    updateURLFromForm();
-    updateOutput();
-}    
-    
-// ## triggering previously defined functions...
-updateFormFromURL();
-updateOutput();
-form.addEventListener("keyup", updateAll, false);
-form.addEventListener("change", updateAll, false);
 
 // # end
 // console.log(getActivityArray());
 
-var startDate = new Date(startTimeInput.value);
-var startTime = startDate.getTime();
-var endDate = new Date(endTimeInput.value);
-var endTime = endDate.getTime();
 
-var activityArray = getActivityArray();
-    // remove excluded activities
-    // activityArray.splice(activityArray.length - excludedActivitiesNum, excludedActivitiesNum);
 
-    const totalActivityMinutesArray = getTotalActivityMinutesFromArray(activityArray);
-    // console.log(totalActivityMinutes);
-// console.log(startTime.toLocalString());
 
 function timestampToTime(timestamp) {
     // console.log(date2.toLocaleDateString());
 // console.log(date2.toLocaleString());
+    let dateTimeArr = [];
     let date = new Date(timestamp);
-    return date.toLocaleString(false, {timeStyle: 'short'});
+    dateTimeArr.push(date.toLocaleString(false, {dateStyle: 'full'}));
+    dateTimeArr.push(date.toLocaleString(false, {timeStyle: 'short'}));
+    return dateTimeArr;
 }
 
 function activityArrayMinutesToTimestamps(activityGroupsArr, totalTimesArr, direction = false) {
@@ -408,8 +367,7 @@ function activityArrayMinutesToTimestamps(activityGroupsArr, totalTimesArr, dire
     
 }
 
-var finalActivityGroupsForwards = activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray);
-var finalActivityGroupsBackwards = activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray, 'backwards');
+
 
 function sortByTimestamps( a, b ) {
   if ( a[3] < b[3] ){
@@ -440,16 +398,92 @@ function flattenAndSortFinalActivityGroups(finalActivityGroups) {
 // console.log(activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray, 'backwards'));
 
 // marky
-
-function outputData(array) {
+function createElement(tag, text) {
+    return '<' + tag + '>' + text + '</' + tag + '>';
+}
+function createTableRow(array, classText = '') {
+    html = '<tr class="' + classText + '">';
     for (let index = 0; index < array.length; index++) {
         const item = array[index];
-        
+        html += '<td>' + item + '</td>';
     }
+    html += '</tr>';
+    return html;
+}
+function trClass(duration) {
+    if(duration == 0) {
+        return 'done';
+    }
+    return '';
 }
 
-console.log(flattenAndSortFinalActivityGroups(finalActivityGroupsForwards));
-console.log(flattenAndSortFinalActivityGroups(finalActivityGroupsBackwards));
+const htmlTableStart = '<table><thead><tr><th>Activity</th><th>Time</th><tbody>';
+const htmlTableEnd = '</tbody></table>';
+function dataToHtml(array) {
+    var curDay = '';
+    var html = '';
+    for (let index = 0; index < array.length; index++) {
+        let item = array[index];
+        let daytime = timestampToTime(item[3]);
+        let day = daytime[0];
+        let time = daytime[1];
+        let duration = item[2];
+        let firstTd = createElement('h3', item[0]);
+        firstTd += createElement('strong', item[1]);
+        if(duration != 0) {
+            firstTd += ' ('+ duration +' minutes)';
+        }
+        
+        console.log(daytime);
+        if(curDay != day) {
+            if(curDay != '') {
+                html += htmlTableEnd;
+            }
+            curDay = day;
+            html += createElement('h2', curDay);
+            html += htmlTableStart;
+            
+        }
+        html += createTableRow([firstTd, time], trClass(duration));
+    }
+    html += htmlTableEnd;
+    outputHtmlElem.innerHTML = html;
+}
+
+
+var updateOutput = function() {
+        showHideForm();
+        var startDate = new Date(startTimeInput.value);
+startTime = startDate.getTime();
+endDate = new Date(endTimeInput.value);
+endTime = endDate.getTime();
+
+var activityArray = getActivityArray();
+
+const totalActivityMinutesArray = getTotalActivityMinutesFromArray(activityArray);
+
+// marky
+let agendaAlignment = '';
+if(agendaAlignmentInputEndtime.checked) {
+    agendaAlignment = 'backwards';
+}
+
+dataToHtml(flattenAndSortFinalActivityGroups(activityArrayMinutesToTimestamps(getActivityArray(), totalActivityMinutesArray, agendaAlignment)));
+    }
+
+var updateAll = function() {
+    updateURLFromForm();
+    updateOutput();
+}    
+    
+// ## triggering previously defined functions...
+updateFormFromURL();
+updateOutput();
+form.addEventListener("keyup", updateAll, false);
+form.addEventListener("change", updateAll, false);
+
+// console.log(outputData(finalFlatActivitiesForwards));
+// console.log(finalFlatActivitiesBackwards);
 
 
 // console.log(date2.toLocaleDateString());
