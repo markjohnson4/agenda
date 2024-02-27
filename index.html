@@ -67,13 +67,67 @@
             font-size: 1rem;
             opacity: 0.5;
         }
+        details {
+            border: 1px solid #000;
+            
+        }
+        details .inner {
+                padding: 10px;
+            }
+        summary {
+            background: #c5f6b3;
+            padding: 5px;
+        }
+        .mt-0 {
+            margin-top: 0 !important;
+        }
+        .copyBtn {
+            appearance: none;
+            padding: 10px;
+            background: #c4f8f8;
+        }
+        .aboutBtn {
+            background: #feedbf;
+        }
+        .text {
+            max-width: 65ch;
+            line-height: 1.4;
+            
+        }
+        .lead {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        h2 {
+            color: #8b0000;
+        }
+        .text h3 {
+            color: #003687;
+            opacity: 1;
+        }
     </style>
     
   </head>
   <body style="margin: 1em;">   
     <!-- Copy URL Feature: HTML  -->
+    <details>
+        <summary class="aboutBtn">About this tool</summary>
+        <div class="inner mt-0 text">
+            <p class="lead">This tool turns a list of activities (and the time it takes to do each one) into a schedule.  You can set a time you want your schedule to start or a time when you want it to end.
+            </p>
+            <h2>Features</h2>
+            <h3>Privacy-respecting</h3>
+            <p>All the data you enter into this form is only saved to the URL and nowhere else.</p>
+            <h3>Sharable</h3>
+            <p>Planning a group schedule? Share the URL of your schedule to anyone!  When they click the link, the data in the URL will auto-populate the form and display the schedule.</p>
+            <h3>Parallel Schedules</h3>
+            <p>Planning a dinner party involving a bunch of dishes?  Write out the steps </p>
+
+
+        </div>
+      </details>
     <div>
-        <button type="button" onclick="copyURL()">copy URL to clipboard</button>
+        <button class="copyBtn" type="button" onclick="copyURL()">copy URL to clipboard</button>
         <span id="copyText"></span>
     </div>
     <form id="f" action="">
@@ -115,13 +169,22 @@
         <label style="display: block;">Add agenda items in the format "[activity] [number]" where "[number]" is the amount of minutes needed to do the activity.
             <textarea id="a" name="a" style=""  ></textarea>
         </label>
+        <details>
+            <summary>Minutes calculator</summary>
+            <div class="inner mt-0">
+                <div><label >Days: <input type="number" min="0" id="calculator_days"></label></div>
+            <div><label > Hours: <input min="0" type="number" id="calculator_hours"></label></div>
+             <div>= <strong id="calculator_minutes">0</strong> minutes</div>
+            </div>
+          </details>
     </div>
     </div>
     
     
 </form>
 <div>
-        <div>Minutes calculator</div><label >Days: <input type="number" min="0" id="calculator_days"></label><label > Hours: <input min="0" type="number" id="calculator_hours"></label> = <span id="calculator_minutes">0</span> minutes
+    
+        
     </div>
 <div id="outputHtml">test</div>
 <p> <a href="https://docs.google.com/document/d/1FaS_KgJ85MnXVl9iNqmWHh-JPkvb4tddKzijILKE2bY/edit">Learn more about the agenda builder web tool</a></p>
