@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Agenda</title>
+    <title>Agenda Builder</title>
     <style>
         :root {
             --tablegap: 0.5rem;
@@ -45,13 +45,16 @@
            
         }
         tr > *:first-child {
+            white-space: nowrap;
+        }
+        tr > *:last-child {
             width: 100%;
         }
         tr > *:last-child {
             white-space: nowrap;
         }
         tr.done {
-            background: #cbf2fd;
+            background: #fcfddd;
         }
         
         body.hideDurationCells .durationCell {
@@ -75,7 +78,6 @@
                 padding: 10px;
             }
         summary {
-            background: #c5f6b3;
             padding: 5px;
         }
         .mt-0 {
@@ -84,9 +86,14 @@
         .copyBtn {
             appearance: none;
             padding: 10px;
-            background: #c4f8f8;
+            background: #f5cffe;
+            border: 1px solid #000;
+            color: #000;
         }
-        .aboutBtn {
+        .calculatorBtn {
+            background: #c5f6b3;
+        }
+        .infoBtn {
             background: #feedbf;
         }
         .text {
@@ -94,6 +101,16 @@
             line-height: 1.4;
             
         }
+        .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
         .lead {
             font-size: 1.2rem;
             font-weight: bold;
@@ -105,23 +122,32 @@
             color: #003687;
             opacity: 1;
         }
+        .activityName, .number {
+            padding: 0 2px;
+        }
+        .activityName {
+            background: #cbfdeb;
+        }
+        .number {
+            background: #f9d9d9;
+        }
     </style>
     
   </head>
   <body style="margin: 1em;">   
     <!-- Copy URL Feature: HTML  -->
     <details>
-        <summary class="aboutBtn">About this tool</summary>
+        <summary class="infoBtn">About Agenda Builder</summary>
         <div class="inner mt-0 text">
-            <p class="lead">This tool turns a list of activities (and the time it takes to do each one) into a schedule.  You can set a time you want your schedule to start or a time when you want it to end.
+            <p class="lead">Agenda Builder turns a list of activities (and the time it takes to do each one) into a schedule.  You can set a time you want your schedule to start or a time when you want it to end.
             </p>
             <h2>Features</h2>
             <h3>Privacy-respecting</h3>
             <p>All the data you enter into this form is only saved to the URL and nowhere else.</p>
             <h3>Sharable</h3>
             <p>Planning a group schedule? Share the URL of your schedule to anyone!  When they click the link, the data in the URL will auto-populate the form and display the schedule.</p>
-            <h3>Parallel Schedules</h3>
-            <p>Planning a dinner party involving a bunch of dishes?  Write out the steps </p>
+            <h3>Calculates simultaneous agendas</h3>
+            <p>Simultaneous agendas are helpful if you want to do something like cook multiple dishes.  Add an end time when you want all your dishes to be done and Agenda Builder will tell you when to do what.</p>
 
 
         </div>
@@ -153,24 +179,85 @@
         </div> -->
         
         <div class="row">
-            <span>Agenda Alignment</span> <label><input name="aa" value="s" type="radio" checked>Start Time</label>
-            <label><input name="aa" value="e" type="radio" />End Time</label>
-            <!-- <label><input name="a" value="f" type="radio" />Force fit between start time and end time</label> -->
+            <span>Align agenda(s) from a...</span> 
+            
         </div>
         
+        <style>
+            .startEndLabelBtns {
+                border: 1px solid #000;
+                padding: 10px 0px;
+                display: inline-block;
+                width: 83px;
+                text-align: center;
+                
+            }
+            .startEndWrapperes {
+                border: 1px solid transparent;
+            }
+            .startEndLabelBtns + * {
+                margin-left: 5px;
+                width: 195px;
+            }
+            .startEndLabelBtns.start {
+                background: #aff0fc;
+            }
+            .startEndLabelBtns.end {
+                background: #affced;
+            }
+            input#aas:checked ~ .startEndWrapperes.start {
+                background: #aff0fc;
+                border-color: #000;
+            }
+            input#aas:checked ~ .startEndWrapperes.end input {
+                opacity: 0.5;
+            }
+            input#aae:checked ~ .startEndWrapperes.start input {
+                opacity: 0.5;
+            }
+            input#aas:checked ~ .startEndWrapperes.start .startEndLabelBtns {
+                border-color: transparent;
+            }
+            input#aae:checked ~ .startEndWrapperes.end {
+                background: #affced;
+                border-color: #000;
+            }
+            input#aae:checked ~ .startEndWrapperes.end .startEndLabelBtns {
+                border-color: transparent;
+            }
+        </style>
         
-        <!-- <div><label>Number of excluded activities <input id="ex" name="ex" type="number" value="0"></label></div> -->
-        <div><label>Start time <input id="t" name="t" type="datetime-local"></label> </div>
-    <div class="row"><label>End time <input name="e" id="e" type="datetime-local"></label>
-        <!-- <span>Setting an end time and enabling ratio units will fit all activities into the start time / end time window.</span> -->
-    </div>
+        <input checked class="sr-only" id="aas" name="aa" value="s" type="radio" >
+        <input class="sr-only" id="aae" name="aa" value="e" type="radio" />
+        
+        <div class="row startEndWrapperes start">
+            <label class="startEndLabelBtns start" for="aas">Start Time</label>
+            <input id="t" name="t" type="datetime-local">
+        </div>
+        
+        <div class="row startEndWrapperes end">
+            <label  class="startEndLabelBtns end" for="aae">End time</label>
+            <input name="e" id="e" type="datetime-local">
+        </div>
     
     <div>
-        <label style="display: block;">Add agenda items in the format "[activity] [number]" where "[number]" is the amount of minutes needed to do the activity.
+        <details>
+            <summary class="infoBtn">Agenda(s) formatting</summary>
+            <div class="mt-0 inner text">
+                <p>Add one or many agenda groups separated by a space.  (Agenda Builder will assume all agenda groups as starting at the specified start time or ending at the specified end time.)</p>
+                
+                <p>Each agenda group needs to start with a line of text, which Agenda Builder will interpret as the title of the group. </p> 
+                
+                <p>After writing a title, add lines of text after that line in the format <br /><span class="activityName">[activity name]</span> <span class="number">[number]</span> where <span class="number">[number]</span> is the amount of minutes needed to do the activity.</p>
+            </div>
+        </details>
+        
+        
+        <label style="display: block;">Agenda(s)
             <textarea id="a" name="a" style=""  ></textarea>
         </label>
         <details>
-            <summary>Minutes calculator</summary>
+            <summary class="calculatorBtn">Minutes calculator</summary>
             <div class="inner mt-0">
                 <div><label >Days: <input type="number" min="0" id="calculator_days"></label></div>
             <div><label > Hours: <input min="0" type="number" id="calculator_hours"></label></div>
@@ -186,8 +273,8 @@
     
         
     </div>
-<div id="outputHtml">test</div>
-<p> <a href="https://docs.google.com/document/d/1FaS_KgJ85MnXVl9iNqmWHh-JPkvb4tddKzijILKE2bY/edit">Learn more about the agenda builder web tool</a></p>
+<div id="outputHtml"></div>
+
 
 <script type="text/javascript">
 
@@ -480,7 +567,7 @@ function trClass(duration) {
     return '';
 }
 
-const htmlTableStart = '<table><thead><tr><th>Activity</th><th>Time</th><tbody>';
+const htmlTableStart = '<table><thead><tr><th>Time</th><th>Activity</th><tbody>';
 const htmlTableEnd = '</tbody></table>';
 function dataToHtml(array) {
     var curDay = '';
@@ -507,7 +594,7 @@ function dataToHtml(array) {
             html += htmlTableStart;
             
         }
-        html += createTableRow([firstTd, time], trClass(duration));
+        html += createTableRow([time, firstTd], trClass(duration));
     }
     html += htmlTableEnd;
     outputHtmlElem.innerHTML = html;
