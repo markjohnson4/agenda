@@ -128,16 +128,26 @@
         .number {
             background: #f9d9d9;
         }
+        .hide {
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+        }
     </style>
     
   </head>
-  <body style="margin: 1em;">   
+  <body style="margin: 1em;">
     <!-- Copy URL Feature: HTML  -->
     <details>
         <summary class="infoBtn">About Agenda Builder</summary>
         <div class="inner mt-0 text">
             <p class="lead">Agenda Builder turns a list of activities (and the time it takes to do each one) into a schedule.  You can set a time you want your schedule to start or a time when you want it to end.
             </p>
+            <h2>Examples</h2>
+            <ul>
+                <li><a href="?s=y&aa=s&t=2024-04-05T08%3A00&e=&a=Routine%0Awake+up+10%0Aeat+breakfast+20%0Ado+a+little+of+the+thing+I+dread+10%0Ado+something+fun!+40">Morning Routine using a start time</a></li>
+                <li><a href="?s=y&aa=e&t=2024-04-05T08%3A00&e=2024-04-05T18%3A00&a=Turkey%0APut+in+stuffing+30%0ARoast+it+360+%0A%0Amash+potatoes%0Aboil+potatoes+40%0Amash+them+30">Dinner preparation routine using an end time</a></li>
+            </ul>
             <h2>Features</h2>
             <h3>Privacy-respecting</h3>
             <p>All the data you enter into this form is only saved to the URL and nowhere else.</p>
@@ -151,7 +161,7 @@
       </details>
     <div>
         <button class="copyBtn" type="button" onclick="copyURL()">copy URL to clipboard</button>
-        <span id="copyText"></span>
+        <span id="copyURLAlert"></span>
     </div>
     <form id="f" action="">
 
@@ -324,7 +334,7 @@ var updateURLFromForm = function(event) {
 }
 
 // # Copy URL Feature: Javascript
-const copyTextElement = document.getElementById('copyText');
+const copyTextElement = document.getElementById('copyURLAlert');
 var copyURL = function() {
     let url = document.location.href
 
@@ -342,10 +352,10 @@ var copyURL = function() {
     const showFormInput = document.querySelectorAll('[name="s"][value="n"]')[0];
     var showHideForm = function() {
         if(showFormInput.checked) {
-            formBonus.style['display'] = 'none';
+            formBonus.classList.add("hide");
         }
         else {
-            formBonus.style['display'] = 'block';
+            formBonus.classList.remove("hide");
         }
     }
     

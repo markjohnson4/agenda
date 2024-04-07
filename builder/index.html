@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>"Agenda Builder" Builder</title>
+    <style>
+        :root {
+            --tablegap: 0.5rem;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 1rem;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        * + * {
+            margin-top: 1em;
+        }
+        .row * + * {
+            margin-top: 0;
+            margin-left: 1em;
+        }
+        textarea, input, button {
+            font-size: inherit;
+            font-family: inherit;
+        }
+        textarea {
+            border: 1px solid #000;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            border-collapse: collapse;
+        }
+        tr > * {
+            border-top: 1px solid #000;
+            border-left: 1px solid #000;
+            padding: var(--tablegap);
+            text-align: left;
+           
+        }
+        tr > *:first-child {
+            white-space: nowrap;
+        }
+        tr > *:last-child {
+            width: 100%;
+        }
+        tr.done {
+            background: #fcfddd;
+        }
+        
+        body.hideDurationCells .durationCell {
+            display: none;
+        }
+        .alert {
+            border: 1px solid red;
+            padding: 5px;
+            background: pink;
+        }
+        h3 {
+            margin: 0 0 5px;
+            font-size: 1rem;
+            opacity: 0.5;
+        }
+        details {
+            border: 1px solid #000;
+            
+        }
+        details .inner {
+                padding: 10px;
+            }
+        summary {
+            padding: 5px;
+        }
+        .mt-0 {
+            margin-top: 0 !important;
+        }
+        .copyBtn {
+            appearance: none;
+            padding: 10px;
+            background: #f5cffe;
+            border: 1px solid #000;
+            color: #000;
+        }
+        .calculatorBtn {
+            background: #c5f6b3;
+        }
+        .infoBtn {
+            background: #feedbf;
+        }
+        .text {
+            max-width: 65ch;
+            line-height: 1.4;
+            
+        }
+        .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+        .lead {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        h2 {
+            color: #8b0000;
+        }
+        .text h3 {
+            color: #003687;
+            opacity: 1;
+        }
+        .activityName, .number {
+            padding: 0 2px;
+        }
+        .activityName {
+            background: #cbfdeb;
+        }
+        .number {
+            background: #f9d9d9;
+        }
+    </style>
+    
+  </head>
+  <body style="margin: 1em;">   
+    <!-- Copy URL Feature: HTML  -->
+    <!-- <details>
+        <summary class="infoBtn">About "Agenda Builder"-builder</summary>
+        <div class="inner mt-0 text">
+            <p class="lead">Agenda Builder turns a list of activities (and the time it takes to do each one) into a schedule.  You can set a time you want your schedule to start or a time when you want it to end.
+            </p>
+            <h2>Features</h2>
+            <h3>Privacy-respecting</h3>
+            <p>All the data you enter into this form is only saved to the URL and nowhere else.</p>
+            <h3>Sharable</h3>
+            <p>Planning a group schedule? Share the URL of your schedule to anyone!  When they click the link, the data in the URL will auto-populate the form and display the schedule.</p>
+            <h3>Calculates simultaneous agendas</h3>
+            <p>Simultaneous agendas are helpful if you want to do something like cook multiple dishes.  Add an end time when you want all your dishes to be done and Agenda Builder will tell you when to do what.</p>
+
+
+        </div>
+      </details> -->
+    <div>
+        <button class="copyBtn" type="button" onclick="copyURL()">copy URL to clipboard</button>
+        <span id="copyText"></span>
+    </div>
+    <form id="f" action="">
+
+    <div class="row">
+        <span>Show Form?</span> <label><input name="s" value="y" type="radio" checked>Yes</label>
+        <label><input name="s" value="n" type="radio">No</label>
+    </div>
+    
+    
+    <div id="formBonus" >
+        <!-- <div class="row">
+            <span>Display duration column?</span> <label><input name="d" value="y" type="radio" checked>Yes</label>
+            <label><input name="d" value="n" type="radio">No</label>
+        </div> -->
+        <!-- <div class="row">
+            <span>Display past activities?</span> <label><input name="p" value="y" type="radio" checked>Yes</label>
+            <label><input name="p" value="n" type="radio">No</label>
+        </div> -->
+        <!-- <div class="row">
+            <span>Time format</span> <label><input name="f" value="m" type="radio" checked>Military</label>
+            <label><input name="f" value="s" type="radio" />Standard</label>
+        </div> -->
+        
+        
+        
+        
+    <div>
+
+        
+        <label style="display: block;">All options
+            <textarea id="a" name="a" style=""  ></textarea>
+        </label>
+        <label style="display: block;">Selected Options
+            <textarea id="selected" ></textarea>
+        </label>
+    </div>
+    </div>
+    
+    
+</form>
+<div>
+    
+        
+    </div>
+<div id="outputHtml"></div>
+
+
+<script type="text/javascript">
+
+// # Initial variables
+const urlBase = window.location.protocol  + "//" + window.location.host + window.location.pathname  + "?";
+const form = document.querySelector('form');
+var formDataString;
+
+
+// # Form and URL Functions
+var updateFormFromURL = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.forEach((value, key) => {
+        var input = document.querySelector('[name="'+key+'"]');
+        var inputType = input.type;
+        if(inputType == 'checkbox') {
+            if(value == 'on') {
+
+                input.checked = true;
+            }
+        }
+        else if(inputType == 'radio') {
+            document.querySelector('[name="'+key+'"][value="'+value+'"]').checked = true;
+        }
+        else {
+            document.querySelector('[name="'+key+'"]').value = value;
+        }
+    });
+}
+
+var updateURLFromForm = function(event) {
+    formDataString = new URLSearchParams(new FormData(form)).toString();
+    window.history.replaceState( {} , '', urlBase + formDataString);
+}
+
+// # Copy URL Feature: Javascript
+const copyTextElement = document.getElementById('copyText');
+var copyURL = function() {
+    let url = document.location.href
+
+    navigator.clipboard.writeText(url).then(function() {
+        copyTextElement.innerHTML = 'Copied!';
+    }, function() {
+        copyTextElement.innerHTML = 'Error';
+    });
+    setTimeout(function(){copyTextElement.innerHTML = '';}, 1000);
+}
+
+
+// # input to toggle visibility of content
+    const formBonus = document.getElementById('formBonus');
+    const showFormInput = document.querySelectorAll('[name="s"][value="n"]')[0];
+    var showHideForm = function() {
+        if(showFormInput.checked) {
+            formBonus.style['display'] = 'none';
+        }
+        else {
+            formBonus.style['display'] = 'block';
+        }
+    }
+    
+    
+const textarea = document.getElementById('a');
+
+const outputHtmlElem = document.getElementById('outputHtml');
+
+function updateOutput() {
+
+}
+    
+var updateAll = function() {
+    updateURLFromForm();
+    updateOutput();
+}    
+    
+// ## triggering previously defined functions...
+updateFormFromURL();
+updateOutput();
+form.addEventListener("keyup", updateAll, false);
+form.addEventListener("change", updateAll, false);
+
+// console.log(outputData(finalFlatActivitiesForwards));
+// console.log(finalFlatActivitiesBackwards);
+
+
+// console.log(date2.toLocaleDateString());
+// console.log(date2.toLocaleString());
+
+// # textarea auto-resizing
+// taken from here: https://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
+const tx = document.getElementsByTagName("textarea");
+for (let i = 0; i < tx.length; i++) {
+  tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+  tx[i].addEventListener("input", OnInput, false);
+}
+
+function OnInput() {
+  this.style.height = 'auto';
+  this.style.height = (this.scrollHeight) + "px";
+}
+
+</script>
+  </body>
+</html>
